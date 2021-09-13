@@ -138,6 +138,10 @@
 % ===============================
 
 
+% =====Листинги=====
+\usepackage{listings}
+% ==================
+
 
 
 \begin{document}
@@ -145,6 +149,150 @@
 \input{title/title.tex}
 
 \tableofcontents
+
+\chapter{ВВЕДЕНИЕ}
+
+\section{Цель}
+Получить практические навыки по созданию моделей, представлений и контроллеров в приложениях ASP.NET Core для реализации обработки информации на стороне сервера.
+
+\section{Вариант}
+Пятый вариант предусматривает создание и заполнение списка студентов группы.
+
+\section{Задание}
+
+\begin{itemize}
+	\item Создать пустой проект.
+	\item Добавить в проект модель данных по заданию.
+	\item Создать представление, содержащее элементы управления HTML и вставки CSharp кода.
+	\item Создать код контроллера для обработки информации на стороне сервера.
+	\item Запустить приложение, проверить его работоспособность.
+	\item В отчете привести код страницы и скриншот формы.
+	\item Пояснить назначение отдельных фрагментов кода.
+	\item Пояснить отличие серверных элементов и элементов HTML.
+	\item Провести анализ выполненной работы и сформулировать выводы.
+\end{itemize}
+
+\chapter{ОСНОВНАЯ ЧАСТЬ}
+
+\section{Создание проекта}
+Создадим новый проект платформы .NET, который будет использовать ASP.NET Core MVC фреймворк для построения WEB-приложений. Для этого перейдем в папку, где должен располагаться проект и введем команду в терминале:
+
+\lstset{language=bash}
+\begin{lstlisting}[basicstyle=\small]
+$ dotnet new mvc
+\end{lstlisting}
+
+В получившейся файловой структуре папка Controllers содержит контроллеры, папка Views --- представления, папка Model --- бизнес-логику приложения.
+
+Назначение моделей в шаблоне MVC заключается в реализации бизнес-логики приложения, а конкретно в хранении и обработке данных. Правила ASP.NET Core предписывают помещать код, который ответственен за реализацию модели, в папку Models.
+
+Контроллеры используются для обработки входящих запросов и отправки ответов. Сервис маршрутизации принимает запрос и выбирает подходящий контроллер. Затем у контроллера вызывается нужный метод, который уже взаимодействует с моделями и возвращает представление. Контроллеры должны лежать в папке Controllers. Их имена должны подходить под шаблон \{Название контроллера\}Controller.cs
+
+Представления в шаблоне MVC отвечают за визуальное отображение данных. В ASP.NET Core для этого используется специальный HTML-подобный язык Razor. Он был разработан как более современная и продвинутая замена WebForms. Язык поддерживает вставку CSharp кода прямо в HTML-теги. Представления должны размещаться по следующему шаблону: Views/\{Название контроллера\}/\{Название метода контроллера\}.cshtml.
+
+\section{Создание модели студента}
+Создадим модель, которая будет обрабатывать список студентов. В данной лабораторной работе данные будут храниться in-memory, чтобы не перегружать исходный код программы лишними операциями.
+
+Создадим файл StudentModel.cs в папке Models и наполним его следующим содержимым:
+\lstset{language=java}
+\begin{lstlisting}[basicstyle=\small]
+using System.Collections.Generic;
+using System.Linq;
+using System;
+
+namespace Labs.Models
+{
+  public class StudentModel
+  {
+    public List<string> Students { get; set; } = new List<string>();
+
+    public void AppendStudent(string name)
+    {
+      if (name.Length > 0)
+      {
+        Students.Add(name);
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+\section{Создание контроллера}
+Теперь создадим контроллер, который будет обрабатывать различные запросы к нему. Создадим файл Laba1Controller.cs и заполним его следующим кодом:
+
+\lstset{language=java}
+\begin{lstlisting}[basicstyle=\small]
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Labs.Models;
+
+namespace Labs.Controllers
+{
+  public class Laba1 : Controller
+  {
+    public static StudentModel model = new StudentModel();
+
+    public IActionResult Index()
+    {
+      return View(model.Students);
+    }
+
+    public IActionResult AddStudent(string name)
+    {
+      model.AppendStudent(name);
+      return Redirect("~/Laba1/Index");
+    }
+  }
+}
+\end{lstlisting}
+
+Здесь метод Index() будет возвращать страницу со студентами, на которой будет форма, позволяющая добавить нового студента. Обработкой добавления нового студента будет заниматься метод AddStudent(), который обращается к студенческой модели и вызывает метод AppendStudent(), который в свою очередь добавляет студента в список. В конце концов, метод добавления производит перенаправление на страницу Index, а та отображает новый список студентов.
+
+\section{Создание представления}
+Осталось создать представление для списка студентов. Для этого создадим в папке Views папку Laba1, а в ней файл Index.cshtml. Добавим туда следующий HTML-подобный код:
+
+\lstset{language=HTML}
+\lstset{extendedchars=\true}
+\begin{lstlisting}[basicstyle=\small]
+@model IEnumerable<string>
+<form action="~/Laba1/AddStudent" method="get">
+  <label for="name">Имя студента: </label>
+  <input type="text" name="name">
+  <input type="submit" value="Добавить студента">
+</form>
+<table>
+  @foreach (var student in Model)
+  { 
+    <tr>
+      <td>@student</td>
+    </tr>
+  }
+</table>
+\end{lstlisting}
+
+Сначала в коде объявлется тип передаваемой информации через метод View(). Затем выводится форма добавления студента, а после этого формируется таблица. Ее формирование происходит с помощью вставок C$\sharp$ кода в HTML-разметку. Такой язык называется Razor.
+
+\chapter{ЗАКЛЮЧЕНИЕ}
+В ходе выполнения лабораторной работы бало разрабоано MVC приложение, которое позволяет просматривать и пополнять список студентов. Местом для хранения списка студентов была выбрана оперативная память. К достоинствам способа хранения можно отнести быстроту и простоту в использовании. Недостаток же заключается в том, что данные в оперативной памяти потеряются после перезапуска сервера.
+
+\section{Результат работы приложения}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{before}
+	\caption{Пустой список студентов}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{after}
+	\caption{Список студентов}
+\end{figure}
 
 
 \end{document}
