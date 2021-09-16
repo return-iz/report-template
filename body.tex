@@ -1,1 +1,146 @@
 \chapter{ОСНОВНАЯ ЧАСТЬ}
+
+\section{Разворачивание контейнера PostgreSQL}
+Первое, что необходимо сделать, --- это развернуть базу данных. Есть несколько способов реализации этого.
+
+Первый заключается в том, чтобы установить сервер базы данных непосредственно <<на железе>>. Подход этот достаточно простой, но во-первых, он интегрирует в систему различные файлы, которые может быть не легко удалить, если понадобиться, а во-вторых данный вариант не масштабируется.
+
+Второй --- воспользоваться контейнеризацией. Этот подход избавлен от все недостатков предыдущего. Воспользуемся Docker и Docker Compose для развертывания сервера БД PostgreSQL. Создадим файл docker-compose.yml и запишем в нем следующее:
+
+\begin{minted}{yaml}
+version: "3"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: laba3
+    ports:
+      - 5432:5432
+\end{minted}
+
+Описав правила развертывания выполним их с помощью команды:
+
+\begin{minted}{bash}
+$ docker-compose up
+\end{minted}
+
+После этого сервер базы данных доступен на локальной машине через порт 5432. Для управления БД через WEB-интерфейс можно добавить в инфраструктуру еще один контейнер, который построен из образа adminer. В данной лабораторной работе в этом нет необходимости.
+
+\section{Создание модели и ее контекста}
+ASP.NET Core пропагандирует подход Code First. Суть этого подхода заключается в том, что сначала в коде описываются сущности базы данных и их связи, а затем по этим описаниям сам фреймворк строит структуру БД. Этот подход является современным и используется сейчас повсеместно в разных фреймворках. Тоже воспользуемся им и опишем модель предмета кафедры в файле Models/Discipline.cs:
+
+\begin{minted}{csharp}
+namespace Labs.Models
+{
+  public class Discipline
+  {
+    public int Id { get; set; }
+    public string Name { get; set; }
+  }
+}
+\end{minted}
+
+Для простоты модель будет содержать только ID и название предмета. В действительности можно выделить значительно большое полей, которые описывают дисциплину кафедры.
+
+Фреймворк не работает с моделями на прямую. Модели нужны только как отображение таблиц БД в виде классов. Само же выполнение команд БД выполняется через сущности, которые называются контекстом. Создадим контекст модели в файле Models/DepartmentContext.cs:
+
+\begin{minted}{csharp}
+namespace Labs
+{
+  public class DepartmentContext : DbContext
+  {
+    public DbSet<Discipline> dp { get; set; }
+    
+    public DepartmentContext()
+    {
+      Database.EnsureCreated();
+    }
+
+    protected override void 
+    OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+      optionsBuilder.UseNpgsql(
+                               "Host=localhost;" +
+                               "Port=5432;" +
+                               "Database=laba3;" + 
+                               "Username=postgres;" + 
+                               "Password=postgres");
+    }
+  }
+}
+\end{minted}
+
+В конструкторе контекста проверяется существуют ли описываемые сущности. Если чего-то не хватает, то это досоздается. В переопределенной функции задаются действия при конфигурации. Конкретно в этом случае задается строка подключения к базе данных. Также в контексте создается свойство-множество, которое содержит дисциплины кафедры.
+
+\section{Создание контроллера}
+Создадим контроллер для данной лабораторной работы. Он будет содержать статическое свойство контекста модели, а также три метода: для главной страницы, для удаления и для добавления записей в базу данных. Создадим контроллер по пути Controllers/Laba3Controller.cs:
+
+\begin{minted}{csharp}
+namespace Labs.Controllers
+{
+  public class Laba3 : Controller
+  {
+    public static DepartmentContext db = new DepartmentContext();
+		
+    public IActionResult Index()
+    {
+      return View(db.dp.ToList());
+    }
+		
+    public IActionResult Delete(int id)
+    {
+      Console.WriteLine(id);
+      var dp = db.dp.Where(obj => obj.Id == id).FirstOrDefault();
+      db.dp.Remove(dp);
+      db.SaveChanges();
+      return Redirect("~/Laba3/Index");
+    }
+		
+    [HttpPost]
+    public IActionResult Add(string name)
+    {
+      var dp = new Discipline();
+      dp.Name = name;
+      db.dp.Add(dp);
+      db.SaveChanges();
+      return Redirect("~/Laba3/Index");
+    }
+  }
+}
+\end{minted}
+
+Для созданного контроллера будет достаточно одного представления, поскольку только один метод возвращает его -- Index(). Методы Add() и Delete() не возвращает представление, они лишь выполняют утилитарные функции по добавлению и удалению записей в/из базы данных.
+
+\section{Создание представления}
+Представление должно находиться по пути Views/Laba3/Index.cshtml и содержать следующий код:
+
+\begin{minted}{html}
+@model List<Labs.Models.Discipline>
+
+<form action="~/Laba3/Add" method="post">
+  <label for="name">Название предмета</label>
+  <input type="text" name="name">
+  <input type="submit" value="Добавить">
+</form>
+
+<table border="1" >
+  <tr>
+    <td>ID</td>
+    <td>Название</td>
+    <td>Действие</td>
+  </tr>
+  @foreach (var dp in Model)
+  {
+    <tr>
+      <td>@dp.Id</td>
+      <td>@dp.Name</td>
+      <td><a href="~/Laba3/Delete?id=@dp.Id">Удалить</a></td>
+    </tr>
+  }
+</table>
+\end{minted}
+
+Представление принимает модель в виде списка дисциплин кафедры. Затем создается форма для добавления новой дисциплины в список. Ниже генерируется таблица с рамкой. Таблица содержит три столбца: ID, название, действие. ID и название берутся при формировании строки из свойств модели. Действие задается в виде ссылки на метод Delete() контроллера. В качестве параметра запроса используется ID текущей обрабатываемой записи.
