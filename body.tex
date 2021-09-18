@@ -1,1 +1,101 @@
 \chapter{ОСНОВНАЯ ЧАСТЬ}
+
+Модель данных аналогична предыдущей лабораторной работе. Однако представление и контроллер будут отличаться.
+
+\section{Создание представления}
+
+Представление должно поддерживать отображение всех элементов базы данных, а также иметь кнопки для сохранения, очистки и восстановления БД.
+
+\begin{minted}{html}
+@using pois.Models
+
+@model IEnumerable<Discipline>
+
+<table border="1">
+  <tr>
+    <td>ID</td>
+    <td>Название</td>
+  </tr>
+  @foreach (var d in Model)
+  {
+    <tr>
+      <td>@d.Id</td>
+      <td>@d.Name</td>
+    </tr>
+  }
+</table>
+
+<div>
+  <form action="~/Home/Save" method="get">
+    <input type="submit" value="Сохранить данные">
+  </form>
+
+  <form action="~/Home/Clear" method="get">
+    <input type="submit" value="Очистить данные">
+  </form>
+
+  <form action="~/Home/Load" method="get">
+    <input type="submit" value="Восстановить данные">
+  </form>
+</div>
+\end{minted}
+
+Нажатие на кнопки вызывает соответствующие методы из контроллера.
+
+\section{Создание контроллера}
+
+Контроллер должен уметь возвращать представление, а также сохранять БД в JSON-файл, очищать ее и восстанавливать. 
+
+\begin{minted}{csharp}
+namespace pois.Controllers
+{
+  public class HomeController : Controller
+  {
+    public static DepContext context = new DepContext();
+
+    public IActionResult Index()
+    {
+      return View(context.Disciplines.ToList());
+    }
+
+    public IActionResult Save()
+    {
+      using (var fs = new StreamWriter(@"wwwroot/data.json", false ))
+      {
+        foreach (var d in context.Disciplines.ToList())
+        {
+          var jsonText = JsonSerializer.Serialize<Discipline>(d);
+          fs.WriteLine(jsonText);
+        }
+      }
+      return Redirect("~/Home/Index");
+    }
+
+    public IActionResult Clear()
+    {
+      context.Disciplines.RemoveRange(context.Disciplines);
+      context.SaveChanges();
+      return Redirect("~/Home/Index");
+    }
+
+    public IActionResult Load()
+    {
+      using (var fs = new StreamReader(@"wwwroot/data.json"))
+      {
+        context.Disciplines.RemoveRange(context.Disciplines);
+        context.SaveChanges();
+        string line;
+        while ((line = fs.ReadLine()) != null)
+        {
+          var d = JsonSerializer.Deserialize<Discipline>(line);
+          context.Disciplines.Add(d);
+          context.SaveChanges();
+        }
+      }
+      return Redirect("~/Home/Index");
+    }
+  }
+}
+\end{minted}
+
+Сохранение, очистку и восстановление выполняют соответственно методы Save(), Clear() и Load(). Данные сериализуются в директорию общедоступных файлов в файл с названием data.json. Каждый из этих методов перенаправляет на главную страницу послы выполнения нужных действий.
