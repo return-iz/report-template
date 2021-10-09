@@ -6,4 +6,5 @@ _minted-*
 *.toc
 *.pdf
 *.dvi
+.idea
 
