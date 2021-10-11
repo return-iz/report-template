@@ -579,7 +579,6 @@ index <- data$`Удовлетворенность заказчика` == "выс
 data[index, "Удовлетворенность заказчика"] <- as.numeric(3)
 data[, "Удовлетворенность заказчика"] <- 
     as.numeric(data[, "Удовлетворенность заказчика"])
-
 \end{minted}
 
 \begin{table}[H]
@@ -783,41 +782,371 @@ data[, "Удовлетворенность заказчика"] <-
 
 \section{Корреляционный анализ данных}
 
-\subsection{Оценка степени взаимосвязи между качественными переменными на основе критериев Chi-квадрат и Фишера}
+\subsection{Коэффициенты корреляции Пирсона, Спирмена и Кендала}
+
+Для оценки степени взаимосвязи между количественными переменными на основе коэффициентов Пирсона, Спирмена и Кендалла напишем следующий код:
+
+\begin{minted}[fontsize=\small]{r}
+MJ <- juniors[, unlist(lapply(juniors, is.numeric))]
+MS <- seniors[, unlist(lapply(seniors, is.numeric))]
+
+JP <- cor(MJ, use = "all.obs")
+JS <- cor(MJ, use = "all.obs", method = "spearman")
+JK <- cor(MJ, use = "all.obs", method = "kendall")
+
+SP <- cor(MS, use = "all.obs")
+SS <- cor(MS, use = "all.obs", method = "spearman")
+SK <- cor(MS, use = "all.obs", method = "kendall")
+\end{minted}
+
+
 
 \paragraph{Первая группа}
+Данные для первой группы (<<juniors>>) представлены в таблицах \ref{jun/p} -- \ref{jun/k}.
+
+\begin{table}[H]
+	\centering
+	\caption{Критерий Пирсона для группы <<juniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		&  
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & -0.21 & -0.20 & -0.01 & 0.09 & 0.10 & 0.42 \\ \hline
+		Возраст               && 0.32 & 0.01 & 0.10 & -0.11 & -0.14 \\\hline
+		Стаж                  &&&  0.15 & -0.13 &  0.12 & -0.12 \\ \hline
+		Процент успеха        &&&& -0.04 &  0.59 & -0.11 \\ \hline
+		Количество ошибок     &&&&& -0.47 &  0.14 \\ \hline
+		Оценка заказчика      &&&&&&  0.26 \\ \hline
+	\end{tabular}
+	\label{jun/p}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\caption{Критерий Спирмена для группы <<juniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		& 
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & -0.19 & -0.20 & -0.01 & 0.08 & 0.10 & 0.40 \\ \hline
+		Возраст               &&  0.29 & -0.03 &  0.12 & -0.12 & -0.09 \\ \hline	
+		Стаж                  &&&  0.09 & -0.14 &  0.11 & -0.14 \\ \hline
+		Процент успеха        &&&& -0.08 &  0.59 & -0.11 \\ \hline
+		Количество ошибок     &&&&& -0.48 &  0.12 \\ \hline	
+		Оценка заказчика      &&&&&&  0.24 \\ \hline	
+	\end{tabular}
+	\label{jun/s}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\caption{Критерий Кенделла для группы <<juniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		&  
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & -0.17 & -0.17 & -0.01 & 0.06 & 0.08 & 0.37 \\\hline
+		Возраст               &&  0.22 & -0.02 &  0.09 & -0.09 & -0.08 \\ \hline
+		Стаж                  &&&  0.06 & -0.10 &  0.07 & -0.11 \\ \hline
+		Процент успеха        &&&& -0.06 &  0.43 & -0.08 \\ \hline	
+		Количество ошибок     &&&&& -0.35 &  0.09 \\ \hline	
+		Оценка заказчика      &&&&&&  0.18 \\ \hline	
+	\end{tabular}
+	\label{jun/k}
+\end{table}
+
+
+
 
 \paragraph{Вторая группа}
+Данные для второй группы (<<seniors>>) представлены в таблицах \ref{sen/p} -- \ref{sen/k}.
 
-\paragraph{Выводы}
+\begin{table}[H]
+	\centering
+	\caption{Критерий Пирсона для группы <<seniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		& 
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & 0.03 & 0.09 & -0.02 & 0.03 & 0.21 & 0.51 \\ \hline
+		Возраст               && 0.46 & 0.17 & -0.01 & -0.04 & -0.04  \\ \hline	
+		Стаж                  &&& 0.29 & -0.21 & 0.34 & 0.10  \\ \hline
+		Процент успеха        &&&& 0.06 & 0.37 & -0.01  \\ \hline
+		Количество ошибок     &&&&& -0.53 & -0.13  \\ \hline	
+		Оценка заказчика      &&&&&& 0.50  \\ \hline
+	\end{tabular}
+	\label{sen/p}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\caption{Критерий Спирмена для группы <<seniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		&
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & 0.01 & 0.11 & -0.02 & 0.01  & 0.22 & 0.39 \\ \hline
+		Возраст               && 0.49 & 0.21 & 0.02 & -0.04 & -0.06  \\ \hline	
+		Стаж                  &&& 0.25 & -0.19 & 0.34 & 0.12  \\ \hline
+		Процент успеха        &&&& 0.07 & 0.41 & -0.01  \\ \hline
+		Количество ошибок     &&&&& -0.46 & -0.12  \\ \hline	
+		Оценка заказчика      &&&&&& 0.48  \\ \hline
+	\end{tabular}
+	\label{sen/s}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\caption{Критерий Кенделла для группы <<seniors>>}
+	\begin{tabular}{|l|c|c|c|c|c|c|}
+		\hline
+		&
+		\begin{sideways}
+			Возраст
+		\end{sideways}  & 
+		\begin{sideways}
+			Стаж
+		\end{sideways} & 
+		\begin{sideways}
+			Процент успеха
+		\end{sideways} & 
+		\begin{sideways}
+			Количество ошибок
+		\end{sideways} &
+		\begin{sideways}
+			Оценка заказчика
+		\end{sideways} & 
+		\begin{sideways}
+			Качество документации~
+		\end{sideways} \\ \hline
+		Пол                   & 0.01 & 0.09 & -0.02 & 0.01 & 0.18 & 0.45  \\ \hline
+		Возраст               && 0.37 & 0.16  & 0.01 & -0.03 & -0.04  \\ \hline
+		Стаж                  &&&  0.19 & -0.14  &0.23  &  0.10 \\ \hline
+		Процент успеха        &&&& 0.05 & 0.30 &  -0.01 \\ \hline
+		Количество ошибок     &&&&& -0.34 & -0.10 \\ \hline
+		Оценка заказчика      &&&&&& 0.37  \\ \hline 	
+	\end{tabular}
+	\label{sen/k}
+\end{table}
+
+
+\subsection{Частный коэффициент корреляции}
+Для вычисления частного коэффициента корреляции будет использоваться следующий код:
+
+\begin{minted}[fontsize=\small]{r}
+library(ggm)
+pcor(c("Количество ошибок", "Оценка заказчика", 
+       "Пол", "Возраст", "Стаж", "Процент успеха", "Качество документации"),
+     cov(MJ))
+pcor(c("Количество ошибок", "Оценка заказчика", 
+       "Пол", "Возраст", "Стаж", "Процент успеха", "Качество документации"), 
+     cov(MS))
+\end{minted}
+
+Такой выбор столбцов обусловлен тем, что корреляционный коэффициент Пирсона для них является наибольшим по модулю в обеих группах.
+
+Значение частного коэффициента корреляции для группы <<juniors>> равно $-0.66$. А значение для второй группы (<<seniors>>) равно $-0.60$.
+
+
+\subsection{Матрицы коэффициентов корреляции}
+
+Матрицы коэффициентов корреляции строятся с помощью следующего кода:
+
+\begin{minted}[fontsize=\small]{r}
+library(corrplot)
+corrplot(JP, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+corrplot(JS, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+corrplot(JK, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+
+corrplot(SP, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+corrplot(SS, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+corrplot(SK, 
+         method      = "color", 
+         type        = "upper", 
+         outline     = TRUE, 
+         order       = "hclust", 
+         tl.srt      = 45,
+         tl.col      = "black",
+         addCoef.col = "black", 
+         col         = col(200), 
+         diag        = FALSE)
+\end{minted}
+
+Результаты выполнения этих команд можно наблюдать на рисунках \ref{cor1} -- \ref{cor6}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor1}
+	\caption{Матрица коэффициентов корреляции Пирсона для группы <<juniors>>}
+	\label{cor1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor2}
+	\caption{Матрица коэффициентов корреляции Спирмена для группы <<juniors>>}
+	\label{cor2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor3}
+	\caption{Матрица коэффициентов корреляции Канделла для группы <<juniors>>}
+	\label{cor3}
+\end{figure}
 
 
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor4}
+	\caption{Матрица коэффициентов корреляции Пирсона для группы <<seniors>>}
+	\label{cor4}
+\end{figure}
 
-\subsection{Оценка степени взаимосвязи между количественными переменными на основе расчета коэффициентов корреляции Пирсона, Спирмена и Кендала}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor5}
+	\caption{Матрица коэффициентов корреляции Спирмена для группы <<seniors>>}
+	\label{cor5}
+\end{figure}
 
-\paragraph{Первая группа}
-
-\paragraph{Вторая группа}
-
-\paragraph{Выводы}
-
-
-
-
-\subsection{Оценка степени взаимосвязи между двумя количественными переменными (для которых коэффициент корреляции Пирсона максимален по модулю) на основе расчета частного коэффициента корреляции}
-
-\paragraph{Первая группа}
-
-\paragraph{Вторая группа}
-
-\paragraph{Выводы}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{cor6}
+	\caption{Матрица коэффициентов корреляции Канделла для группы <<seniors>>}
+	\label{cor6}
+\end{figure}
 
 
-
-
-\subsection{Графическое представление матрицы коэффициентов корреляции}
-
-\paragraph{Оценка статистической значимости связи}
-
-\paragraph{Выводы о силе и направлении связи в терминах решаемой задачи}
+\subsection{Выводы}
